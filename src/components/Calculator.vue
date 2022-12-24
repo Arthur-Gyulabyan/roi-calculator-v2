@@ -1,6 +1,6 @@
 <script lang="ts">
-import type {Ref} from 'vue'
-import {ref, toRefs, watch} from 'vue'
+import type { Ref } from 'vue'
+import { ref, toRefs, watch } from 'vue'
 
 interface Props {
   APY: number;
@@ -31,6 +31,8 @@ export default {
       perYear: {sol: '-', usd: '-'},
     });
     const numberMax: Ref<number> = ref(periodMap[period.value]);
+    const amountError: Ref<boolean> = ref(false);
+    const numberError: Ref<boolean> = ref(false);
 
     const not = (value: any) => !value;
 
@@ -51,6 +53,7 @@ export default {
     }
 
     const keyDownAmountHandler = (event: KeyboardEvent) => {
+      amountError.value = false;
       const {key, keyCode, ctrlKey, metaKey} = event;
       const value = (event.target as HTMLInputElement).value;
 
@@ -66,6 +69,7 @@ export default {
     }
 
     const keyUpNumberHandler = (event: KeyboardEvent) => {
+      numberError.value = false;
       const value = (event.target as HTMLInputElement).value;
       const inRangeValue = numberInRange(value);
       if (value !== inRangeValue) {
@@ -73,16 +77,26 @@ export default {
       }
     }
 
+    const validateFields = () => {
+      amountError.value = !amount.value;
+      numberError.value = !number.value;
+    }
+
     const calculate = () => {
+      validateFields();
+      if (amountError.value || numberError.value) {
+        return;
+      }
+
       const periodMap = {day: +number.value / 365, month: +number.value / 12, year: +number.value}
       const p = periodMap[period.value];
 
       const totalSol = (+amount.value * ((1 + APY.value / 100) ** p)).toString();
       const total = {sol: totalSol, usd: (solToUsd(+totalSol)).toString()}
 
-      const map = {day: +number.value, month: +number.value * 30, year: +number.value * 365}
+      const map = {day: +number.value, month: +number.value * 365 / 12, year: +number.value * 365}
       const perDaySol = ((+totalSol - +amount.value) / (map[period.value])).toString();
-      const perMonthSol = (+perDaySol * 30).toString();
+      const perMonthSol = (+perDaySol * 365 / 12).toString();
       const perYearSol = (+perDaySol * 365).toString();
       data.value = {
         total,
@@ -107,6 +121,8 @@ export default {
       number,
       numberMax,
       period,
+      amountError,
+      numberError,
       calculate,
       addUsdSymbol,
       toReadableMode,
@@ -134,6 +150,7 @@ export default {
           <input
               type="text"
               class="control__field"
+              :class="{'field-error': amountError}"
               v-model="amount"
               @keydown="keyDownAmountHandler"
           >
@@ -145,6 +162,7 @@ export default {
             <input
                 type="number"
                 class="control__field control__field_number"
+                :class="{'field-error': numberError}"
                 v-model="number"
                 @keyup="keyUpNumberHandler"
             >

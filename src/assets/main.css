@@ -105,6 +105,10 @@ body {
     margin: 0;
 }
 
+.field-error {
+    border: 1px solid #FF0000;
+}
+
 .app-button {
     height: 37px;
     padding: 10px 13px;
@@ -188,4 +192,14 @@ body {
 
 .mb-12 {
     margin-bottom: 12px;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance: textfield;
 }
